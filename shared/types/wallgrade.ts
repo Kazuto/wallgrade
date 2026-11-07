@@ -149,4 +149,8 @@ export interface Status {
   vips: string | null;
   sourceDir: string;
   outputDir: string;
+  /** Directories the server can't write to, so uploads, settings and renders fail. */
+  unwritable: string[];
+  /** uid:gid the server runs as, null where the platform has none. */
+  user: string | null;
 }

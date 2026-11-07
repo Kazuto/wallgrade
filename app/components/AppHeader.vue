@@ -19,6 +19,8 @@ const missingTools = computed(() =>
     ? (["lutgen", "vips"] as const).filter((tool) => !status.value![tool])
     : [],
 );
+
+const unwritable = computed(() => status.value?.unwritable ?? []);
 </script>
 
 <template>
@@ -51,6 +53,16 @@ const missingTools = computed(() =>
       {{ missingTools.join(" and ") }}
       {{ missingTools.length > 1 ? "are" : "is" }} not installed, rendering
       fails until {{ missingTools.length > 1 ? "they are" : "it is" }}.
+    </p>
+    <p
+      v-if="unwritable.length > 0"
+      class="border-t border-danger/30 bg-danger/10 px-6 py-2 text-sm text-danger"
+      role="alert"
+    >
+      wallgrade
+      {{ status!.user ? `runs as user ${status!.user}, which` : "" }}
+      can't write to {{ unwritable.join(" and ") }}. Uploads, settings and
+      renders fail until it can.
     </p>
   </header>
 </template>

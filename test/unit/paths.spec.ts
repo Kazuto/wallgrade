@@ -1,12 +1,15 @@
+import { chmod, mkdir } from "node:fs/promises";
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   expandPath,
   isInside,
   resolveInside,
   toApiPath,
+  unwritableDirectories,
 } from "../../server/utils/paths";
+import { tempDirectories } from "./helpers";
 
 const ROOT = "/srv/wallpapers";
 
@@ -58,5 +61,42 @@ describe("toApiPath", () => {
     expect(toApiPath(ROOT, "/srv/wallpapers/bleach/a.png")).toBe(
       "bleach/a.png",
     );
+  });
+});
+
+// root may write anywhere.
+describe.skipIf(process.getuid?.() === 0)("unwritableDirectories", () => {
+  it("accepts writable and missing directories", async () => {
+    const dirs = await tempDirectories();
+
+    await mkdir(dirs.source);
+
+    expect(await unwritableDirectories(dirs)).toEqual([]);
+  });
+
+  it("reports a read-only directory once, where missing ones would go", async () => {
+    const dirs = await tempDirectories();
+
+    await mkdir(dirs.source);
+    await chmod(dirs.source, 0o555);
+
+    try {
+      expect(await unwritableDirectories(dirs)).toEqual([dirs.source]);
+    } finally {
+      await chmod(dirs.source, 0o755);
+    }
+  });
+
+  it("checks the parent of a missing directory", async () => {
+    const dirs = await tempDirectories();
+    const root = dirname(dirs.source);
+
+    await chmod(root, 0o555);
+
+    try {
+      expect(await unwritableDirectories(dirs)).toEqual([root]);
+    } finally {
+      await chmod(root, 0o755);
+    }
   });
 });
