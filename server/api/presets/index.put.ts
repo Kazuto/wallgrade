@@ -8,7 +8,7 @@ const bodySchema = z.object({
 export default defineEventHandler(
   async (event): Promise<Record<string, Settings>> => {
     const { name } = await readValidatedBody(event, bodySchema.parse);
-    const state = await updateState(useDirectories().source, (current) => {
+    const state = await updateState(useDirectories(event).source, (current) => {
       current.presets[name] = structuredClone(current.settings);
     });
 

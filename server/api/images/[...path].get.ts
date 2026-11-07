@@ -1,5 +1,5 @@
 export default defineEventHandler(async (event): Promise<ImageDetail> => {
-  const dirs = useDirectories();
+  const dirs = useDirectories(event);
   const path = getRouterParam(event, "path", { decode: true }) ?? "";
   const { source, image } = await findImage(dirs, path);
 

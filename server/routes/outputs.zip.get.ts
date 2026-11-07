@@ -4,7 +4,7 @@ import { Zip, ZipPassThrough } from "fflate";
 
 /** Every rendered output of the files that are not skipped, in one archive. */
 export default defineEventHandler(async (event) => {
-  const dirs = useDirectories();
+  const dirs = useDirectories(event);
   const { images } = await loadLibrary(dirs);
   const files = images
     .filter((image) => !image.skip)

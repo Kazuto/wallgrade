@@ -32,7 +32,8 @@ ADD --checksum=sha256:10610beeae51b3308b01d93be6c998dbda42c887c6ad85e4e22dd12ce6
   /usr/local/bin/lutgen
 
 # Any user may write the cache, so a named volume works whoever the container runs as.
-RUN install -d -o node -g node /data/source \
+# /data/users is where NUXT_USERS_DIR usually points.
+RUN install -d -o node -g node /data/source /data/users \
   && install -d -m 1777 /data/cache
 
 WORKDIR /app

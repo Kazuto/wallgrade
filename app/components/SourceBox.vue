@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const props = defineProps<{ image: LibraryImage }>();
+const emit = defineEmits<{ delete: [] }>();
 
 const file = computed(() => props.image.path.split("/").pop());
 const bits = computed(() => `${props.image.depth}-bit`);
@@ -28,5 +29,22 @@ const space = computed(() =>
     >
       {{ image.folder }}/
     </p>
+    <div class="mt-1 flex gap-2">
+      <a
+        :href="originalUrl(image.path, image.version)"
+        :download="file"
+        :class="buttonClass({ size: 'sm' })"
+      >
+        <Icon name="lucide:file-down" class="size-4" />
+        Original
+      </a>
+      <AppButton
+        variant="ghost"
+        size="sm"
+        icon="lucide:trash-2"
+        @click="emit('delete')"
+        >Delete</AppButton
+      >
+    </div>
   </div>
 </template>

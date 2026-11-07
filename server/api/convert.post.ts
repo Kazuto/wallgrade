@@ -10,7 +10,7 @@ export default defineEventHandler(async (event): Promise<LibraryImage> => {
   const { path, force } = await readValidatedBody(event, bodySchema.parse);
 
   try {
-    return await convertSource(useDirectories(), path, force);
+    return await convertSource(useDirectories(event), path, force);
   } catch (error) {
     if (isError(error)) {
       throw error;

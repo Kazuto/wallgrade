@@ -19,7 +19,13 @@ export default defineNuxtConfig({
     "@nuxt/fonts",
     "@nuxt/icon",
     "@nuxt/test-utils/module",
+    "nuxt-auth-utils",
   ],
+
+  // The app asks /api/session itself, which also answers when there are no users.
+  auth: {
+    loadStrategy: "none",
+  },
 
   css: ["~/assets/css/main.css"],
 
@@ -55,6 +61,23 @@ export default defineNuxtConfig({
     outputDir: "",
     // Previews and generated LUTs (NUXT_CACHE_DIR).
     cacheDir: "./.data/cache",
+    // Gives everyone a sign-in and their own library in a folder named after them
+    // below this one (NUXT_USERS_DIR). sourceDir and outputDir are unused then.
+    usersDir: "",
+    // The admin, who adds the other users (NUXT_ADMIN_USERNAME, NUXT_ADMIN_PASSWORD).
+    adminUsername: "admin",
+    adminPassword: "",
+    session: {
+      // Seals the sign-in cookie, at least 32 characters (NUXT_SESSION_PASSWORD).
+      password: "",
+      maxAge: 60 * 60 * 24 * 30,
+      cookie: {
+        sameSite: "lax",
+        // Browsers drop secure cookies over plain HTTP, except on localhost
+        // (NUXT_SESSION_COOKIE_SECURE=false for e.g. http://192.168.1.10:3000).
+        secure: true,
+      },
+    },
   },
 
   ssr: false,

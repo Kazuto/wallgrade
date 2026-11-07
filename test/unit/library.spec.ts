@@ -1,7 +1,8 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { access, mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import {
+  deleteSource,
   fingerprint,
   isSourcePath,
   loadLibrary,
@@ -294,6 +295,60 @@ describe("loadLibrary", () => {
       "b/wall.png": null,
     });
   });
+});
+
+describe("deleteSource", () => {
+  const exists = (file: string) =>
+    access(file).then(
+      () => true,
+      () => false,
+    );
+
+  it("removes the file, what was rendered from it and its entry", async () => {
+    const dirs = await tempDirectories();
+
+    for (const file of ["a.png", "b.png"]) {
+      await writeImage(join(dirs.source, file), 64, 36);
+    }
+
+    for (const file of ["x/a.avif", "x/b.avif"]) {
+      await writeImage(join(dirs.output, file), 8, 8);
+    }
+
+    await updateState(dirs.source, (state) => {
+      state.images["a.png"] = {
+        point: { x: 0.1, y: 0.2 },
+        outputs: { "x/a.avif": "made" },
+      };
+      state.images["b.png"] = {
+        point: { x: 0.1, y: 0.2 },
+        outputs: { "x/b.avif": "made" },
+      };
+    });
+
+    await deleteSource(dirs, "a.png");
+
+    expect(await exists(join(dirs.source, "a.png"))).toBe(false);
+    expect(await exists(join(dirs.output, "x/a.avif"))).toBe(false);
+    expect(await exists(join(dirs.output, "x/b.avif"))).toBe(true);
+    expect(Object.keys((await readState(dirs.source)).images)).toEqual([
+      "b.png",
+    ]);
+  });
+
+  it.each(["missing.png", "../a.png", "output/x/a.avif", ".wallgrade.json"])(
+    "refuses %j",
+    async (path) => {
+      const dirs = await tempDirectories();
+
+      await writeImage(join(dirs.source, "a.png"), 64, 36);
+      await writeImage(join(dirs.output, "x/a.avif"), 8, 8);
+
+      await expect(deleteSource(dirs, path)).rejects.toMatchObject({
+        statusCode: 404,
+      });
+    },
+  );
 });
 
 describe("isSourcePath", () => {

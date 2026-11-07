@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   expandPath,
   isInside,
+  libraryDirectories,
   resolveInside,
   toApiPath,
   unwritableDirectories,
@@ -12,6 +13,44 @@ import {
 import { tempDirectories } from "./helpers";
 
 const ROOT = "/srv/wallpapers";
+
+describe("libraryDirectories", () => {
+  const config = {
+    sourceDir: ROOT,
+    outputDir: "",
+    cacheDir: "/var/cache/wallgrade",
+    usersDir: "",
+  };
+  const users = { ...config, outputDir: "/srv/out", usersDir: "/srv/users" };
+
+  it("uses the configured directories without users", () => {
+    expect(libraryDirectories(config, null)).toEqual({
+      source: ROOT,
+      output: `${ROOT}/output`,
+      cache: "/var/cache/wallgrade",
+    });
+    expect(
+      libraryDirectories({ ...config, outputDir: "/srv/out" }, null).output,
+    ).toBe("/srv/out");
+  });
+
+  it("gives each user a folder of their own and shares the cache", () => {
+    expect(libraryDirectories(users, "alex")).toEqual({
+      source: "/srv/users/alex",
+      output: "/srv/users/alex/output",
+      cache: "/var/cache/wallgrade",
+    });
+  });
+
+  it.each([null, "", "..", "../bea", "Alex", "a/b", ".accounts.json"])(
+    "refuses %j with users",
+    (username) => {
+      expect(() => libraryDirectories(users, username)).toThrow(
+        expect.objectContaining({ statusCode: 401 }),
+      );
+    },
+  );
+});
 
 describe("isInside", () => {
   it.each([

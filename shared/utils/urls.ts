@@ -31,3 +31,8 @@ export function previewUrl(
 export function outputUrl(file: string, version: number): string {
   return `/output/${encodePath(file)}?v=${version}`;
 }
+
+/** A source as it is on disk, served for downloading. */
+export function originalUrl(path: string, version: number): string {
+  return `/original/${encodePath(path)}?v=${version}`;
+}

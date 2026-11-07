@@ -9,7 +9,7 @@ export default defineEventHandler(async (event): Promise<Settings> => {
     });
   }
 
-  const state = await updateState(useDirectories().source, (current) => {
+  const state = await updateState(useDirectories(event).source, (current) => {
     current.settings = {
       ...settings,
       monitors: [

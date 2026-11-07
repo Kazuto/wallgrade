@@ -1,5 +1,5 @@
-export default defineEventHandler(async (): Promise<Status> => {
-  const dirs = useDirectories();
+export default defineEventHandler(async (event): Promise<Status> => {
+  const dirs = useDirectories(event);
   const [lutgen, vips, unwritable] = await Promise.all([
     lutgenVersion(),
     vipsVersion(),

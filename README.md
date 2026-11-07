@@ -37,6 +37,8 @@ crops, scales and encodes.
   them with "Add files". They are saved in the source directory.
 - **Presets:** save the batch settings under a name and switch between them.
 - **ZIP:** download every rendered output at once.
+- **Users:** optionally, everyone signs in and gets a library of their own, e.g.
+  on a home server. An admin set by environment variables adds the others.
 
 ## Running wallgrade
 
@@ -70,8 +72,8 @@ checkout instead.
 | `LOCAL_UID`     | `1000`   | User the container runs as, who owns the new files |
 | `LOCAL_GID`     | `1000`   | Group of that user                                 |
 
-wallgrade has no sign-in, so the port is only open to this machine. The image is
-for x86-64.
+Without [users](#users), wallgrade has no sign-in, so the port is only open to this
+machine. The image is for x86-64.
 
 ### Without Docker
 
@@ -106,13 +108,64 @@ bun run build
 node --env-file=.env .output/server/index.mjs
 ```
 
+### Users
+
+With `NUXT_USERS_DIR` set, everyone signs in and works in a library of their own:
+uploads, renders, focus points, settings and presets. Each library is a folder below
+`NUXT_USERS_DIR`, named after its user. The admin, set by environment variables,
+adds and removes the others under "Users" in the account menu and can set a new
+password for someone who forgot theirs. Users change their own password under
+"Password".
+
+For a server, in the style of `compose.yaml`:
+
+```yaml
+services:
+  wallgrade:
+    image: ghcr.io/kazuto/wallgrade:latest
+    user: "1000:1000"
+    environment:
+      NUXT_USERS_DIR: /data/users
+      NUXT_ADMIN_USERNAME: kazuto
+      NUXT_ADMIN_PASSWORD: ${WALLGRADE_ADMIN_PASSWORD:?}
+      NUXT_SESSION_PASSWORD: ${WALLGRADE_SESSION_PASSWORD:?}
+    volumes:
+      - /mnt/storage/wallgrade:/data/users
+      - cache:/data/cache
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+volumes:
+  cache:
+```
+
+wallgrade refuses to start when the admin's name or password or the session secret
+is unusable, and says why. Sign-in only protects the data when the connection is
+encrypted, so put wallgrade behind HTTPS, e.g. a reverse proxy. The sign-in cookie
+needs HTTPS too, except on `localhost`; for plain HTTP on a local network, set
+`NUXT_SESSION_COOKIE_SECURE=false`.
+
+Removing a user keeps their folder on disk, delete it by hand if it should go.
+After ten wrong passwords for one name within 15 minutes, that name has to wait.
+A new password, or the admin's in the environment, signs that user out everywhere.
+
 ### Configuration
 
-| Variable          | Default           | Description                                       |
-| ----------------- | ----------------- | ------------------------------------------------- |
-| `NUXT_SOURCE_DIR` | `./.data/source`  | Wallpapers to convert, including folders below it |
-| `NUXT_OUTPUT_DIR` | `<source>/output` | Where the outputs are written                     |
-| `NUXT_CACHE_DIR`  | `./.data/cache`   | Previews and generated LUTs; safe to delete       |
+| Variable                     | Default           | Description                                         |
+| ---------------------------- | ----------------- | --------------------------------------------------- |
+| `NUXT_SOURCE_DIR`            | `./.data/source`  | Wallpapers to convert, including folders below it   |
+| `NUXT_OUTPUT_DIR`            | `<source>/output` | Where the outputs are written                       |
+| `NUXT_CACHE_DIR`             | `./.data/cache`   | Previews and generated LUTs; safe to delete         |
+| `NUXT_USERS_DIR`             |                   | Turns on [users](#users), with their libraries here |
+| `NUXT_ADMIN_USERNAME`        | `admin`           | The admin's username                                |
+| `NUXT_ADMIN_PASSWORD`        |                   | The admin's password, at least 8 characters         |
+| `NUXT_SESSION_PASSWORD`      |                   | Secret for the sign-in cookie, at least 32 chars    |
+| `NUXT_SESSION_COOKIE_SECURE` | `true`            | `false` for plain HTTP other than `localhost`       |
+
+With users, the source and output directories are each user's folder and its
+`output/`; `NUXT_SOURCE_DIR` and `NUXT_OUTPUT_DIR` are unused. `openssl rand
+-base64 32` makes a session secret; changing it signs everyone out.
 
 Relative paths start in the directory the server runs in; `~` stands for your home
 directory. The scan skips hidden files and folders and the output and cache
@@ -153,6 +206,9 @@ focus point, or focus the handle and use the arrow keys (Shift for larger steps)
 
 "Commands" lists the `lutgen` and `vips` commands that make the same output, to copy
 into a script.
+
+Below the pipeline, "Source" downloads the original or deletes the file along with
+everything rendered from it.
 
 Keys: ← and → go to the previous and next file, Esc goes back to Batch.
 

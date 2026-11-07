@@ -2,6 +2,7 @@
 const { images, loaded } = useLibrary();
 const { settings, status } = useSettings();
 const { image: active } = useActiveImage();
+const { session } = useAccount();
 
 const mode = useState<CompareMode>("batch-compare", () => "after");
 // The output whose crop the thumbnails show, shared with Single.
@@ -58,11 +59,16 @@ const cropModel = computed({
       <Icon name="lucide:image-plus" class="size-12 text-faint" />
       <p class="text-lg font-semibold">No images yet</p>
       <p class="max-w-md text-sm text-muted">
-        Drop images anywhere on this page, paste one or use “Add files”. To work
-        on a folder you already have, start wallgrade with NUXT_SOURCE_DIR
-        pointing at it.
+        Drop images anywhere on this page, paste one or use “Add files”.
+        <template v-if="!session?.users">
+          To work on a folder you already have, start wallgrade with
+          NUXT_SOURCE_DIR pointing at it.
+        </template>
       </p>
-      <p v-if="status" class="font-mono text-xs break-all text-faint">
+      <p
+        v-if="status && !session?.users"
+        class="font-mono text-xs break-all text-faint"
+      >
         {{ status.sourceDir }}
       </p>
     </div>

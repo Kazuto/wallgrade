@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { mkdir, readdir, stat } from "node:fs/promises";
+import { mkdir, readdir, rm, stat, unlink } from "node:fs/promises";
 import { basename, dirname, extname, join } from "node:path";
 import { createError } from "h3";
 import sharp from "sharp";
@@ -15,8 +15,8 @@ import type {
 import { lutArgs } from "../../shared/utils/commands";
 import { parseSize } from "../../shared/utils/geometry";
 import { renderTemplate, resolveFile } from "../../shared/utils/settings";
-import { type Directories, isInside, toApiPath } from "./paths";
-import { readState, type State } from "./state";
+import { type Directories, isInside, resolveInside, toApiPath } from "./paths";
+import { readState, type State, updateState } from "./state";
 
 /** Formats sharp can read; BMP is not one of them. */
 export const IMAGE_EXTENSIONS = new Set([
@@ -28,6 +28,18 @@ export const IMAGE_EXTENSIONS = new Set([
   ".tif",
   ".tiff",
 ]);
+
+/** Media types of the sources and outputs, by extension. */
+export const MEDIA_TYPES: Record<string, string> = {
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
+  ".webp": "image/webp",
+  ".avif": "image/avif",
+  ".jxl": "image/jxl",
+  ".tif": "image/tiff",
+  ".tiff": "image/tiff",
+};
 
 // Bumped whenever the pipeline changes how outputs look, which makes them all stale.
 const PIPELINE_VERSION = 1;
@@ -320,6 +332,31 @@ export async function findImage(dirs: Directories, path: string) {
     source: library.sources[index]!,
     image: library.images[index]!,
   };
+}
+
+/**
+ * Removes a source, what was rendered from it and its focus point and overrides.
+ * Only outputs the state records as made from it go, another file may share a
+ * planned path.
+ */
+export async function deleteSource(
+  dirs: Directories,
+  path: string,
+): Promise<void> {
+  const { state, source } = await findImage(dirs, path);
+  const rendered = Object.keys(state.images[path]?.outputs ?? {});
+
+  await unlink(source.file);
+  await Promise.all(
+    rendered.map((file) =>
+      rm(resolveInside(dirs.output, file), { force: true }),
+    ),
+  );
+  await updateState(dirs.source, (current) => {
+    current.images = Object.fromEntries(
+      Object.entries(current.images).filter(([key]) => key !== path),
+    );
+  });
 }
 
 /** Whether a file lies where scanSources() looks for images. */

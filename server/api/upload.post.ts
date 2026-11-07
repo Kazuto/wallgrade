@@ -20,7 +20,7 @@ function cleanName(filename: string) {
 
 export default defineEventHandler(
   async (event): Promise<{ paths: string[]; rejected: string[] }> => {
-    const dirs = useDirectories();
+    const dirs = useDirectories(event);
     const parts = (await readMultipartFormData(event)) ?? [];
     const files = parts.filter(
       (part) => part.name === "files" && part.filename,

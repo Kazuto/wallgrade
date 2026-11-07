@@ -14,7 +14,7 @@ const querySchema = z.object({
 });
 
 export default defineEventHandler(async (event) => {
-  const dirs = useDirectories();
+  const dirs = useDirectories(event);
   const query = await getValidatedQuery(event, querySchema.parse);
   const width = query.w as PreviewWidth;
   const file = resolveInside(

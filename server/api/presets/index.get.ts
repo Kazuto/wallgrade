@@ -1,6 +1,6 @@
 export default defineEventHandler(
-  async (): Promise<Record<string, Settings>> => {
-    const { presets } = await readState(useDirectories().source);
+  async (event): Promise<Record<string, Settings>> => {
+    const { presets } = await readState(useDirectories(event).source);
 
     return presets;
   },

@@ -154,3 +154,22 @@ export interface Status {
   /** uid:gid the server runs as, null where the platform has none. */
   user: string | null;
 }
+
+/** Whoever is signed in. */
+export interface Account {
+  username: string;
+  /** The account from NUXT_ADMIN_USERNAME, who manages the others. */
+  admin: boolean;
+}
+
+export interface SessionInfo {
+  /** Whether everyone signs in and gets their own library (NUXT_USERS_DIR). */
+  users: boolean;
+  account: Account | null;
+}
+
+/** An account as the admin's user list shows it. */
+export interface UserSummary extends Account {
+  /** ISO date, null for the admin, who isn't stored. */
+  createdAt: string | null;
+}

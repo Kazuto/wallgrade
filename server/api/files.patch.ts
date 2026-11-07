@@ -10,7 +10,7 @@ const bodySchema = z.object({
 
 /** Changes the focus point, overrides or skipping of one or more files. */
 export default defineEventHandler(async (event): Promise<LibraryImage[]> => {
-  const dirs = useDirectories();
+  const dirs = useDirectories(event);
   const { paths, point, overrides, skip } = await readValidatedBody(
     event,
     bodySchema.parse,

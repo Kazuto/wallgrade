@@ -1,4 +1,12 @@
 <script setup lang="ts">
+const props = withDefaults(
+  defineProps<{
+    /** Shows the Single and Batch switch, which pages outside the library leave out. */
+    modes?: boolean;
+  }>(),
+  { modes: true },
+);
+
 const route = useRoute();
 const { status } = useSettings();
 const { image } = useActiveImage();
@@ -31,6 +39,7 @@ const unwritable = computed(() => status.value?.unwritable ?? []);
         wallgrade
       </NuxtLink>
       <SegmentedControl
+        v-if="props.modes"
         v-model="mode"
         :options="[
           { value: 'single', label: 'Single' },
@@ -42,6 +51,7 @@ const unwritable = computed(() => status.value?.unwritable ?? []);
       <slot name="title" />
       <div class="ml-auto flex items-center gap-3">
         <slot name="actions" />
+        <AccountMenu />
       </div>
     </div>
 

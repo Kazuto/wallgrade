@@ -4,7 +4,8 @@ import { refDebounced, useEventListener } from "@vueuse/core";
 type Step = "lut" | "resize" | "focus" | "export";
 
 const route = useRoute();
-const { images, loaded } = useLibrary();
+const { images, loaded, refresh } = useLibrary();
+const { notify } = useNotifications();
 const { settings } = useSettings();
 const { path: activePath } = useActiveImage();
 const { ensure, focusFor } = useAutoFocus();
@@ -196,6 +197,31 @@ function render() {
   enqueue([path.value], allDone.value);
 }
 
+async function remove() {
+  const current = image.value;
+
+  if (
+    !current ||
+    !confirm(
+      `Delete ${current.path}? This removes the file and everything rendered from it.`,
+    )
+  ) {
+    return;
+  }
+
+  const target = next.value ?? previous.value;
+
+  try {
+    await $fetch<null>(`/api/images/${encodePath(current.path)}`, {
+      method: "DELETE",
+    });
+    await refresh();
+    await navigateTo(target ? `/edit/${encodePath(target.path)}` : "/");
+  } catch (error) {
+    notify(errorMessage(error), "error");
+  }
+}
+
 useEventListener(window, "keydown", (event: KeyboardEvent) => {
   const element = event.target as HTMLElement;
 
@@ -298,7 +324,7 @@ useEventListener(window, "keydown", (event: KeyboardEvent) => {
           :checkable="item.id === 'lut'"
           @select="step = item.id"
         />
-        <SourceBox :image="image" class="mt-3" />
+        <SourceBox :image="image" class="mt-3" @delete="remove" />
         <div class="flex gap-2">
           <AppButton
             class="flex-1"

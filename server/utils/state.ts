@@ -1,4 +1,4 @@
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { createError } from "h3";
 import { z } from "zod";
@@ -15,6 +15,7 @@ import {
   overridesSchema,
   settingsSchema,
 } from "../../shared/utils/settings";
+import { queueFor, writeJson } from "./jsonFiles";
 
 /** Kept next to the sources, so focus points travel with the images. */
 export const STATE_FILE = ".wallgrade.json";
@@ -54,9 +55,6 @@ const stateSchema = z.object({
     .default({}),
   presets: z.record(z.string(), settingsSchema).default({}),
 });
-
-// Writes to the same file wait for each other, so no change gets lost.
-const queues = new Map<string, Promise<unknown>>();
 
 function isNotFound(error: unknown): boolean {
   return (error as NodeJS.ErrnoException).code === "ENOENT";
@@ -115,37 +113,25 @@ export function updateState(
   change: (state: State) => void,
 ): Promise<State> {
   const file = join(sourceDir, STATE_FILE);
-  const previous = queues.get(file) ?? Promise.resolve();
 
-  const next = previous
-    .catch(() => {})
-    .then(async () => {
-      const state = await readState(sourceDir);
+  return queueFor(file, async () => {
+    const state = await readState(sourceDir);
 
-      change(state);
+    change(state);
 
-      // Entries that hold nothing but defaults carry no information.
-      state.images = Object.fromEntries(
-        Object.entries(state.images).filter(
-          ([, image]) =>
-            image.point ||
-            image.skip ||
-            hasOverrides(image.overrides ?? {}) ||
-            Object.keys(image.outputs ?? {}).length > 0,
-        ),
-      );
+    // Entries that hold nothing but defaults carry no information.
+    state.images = Object.fromEntries(
+      Object.entries(state.images).filter(
+        ([, image]) =>
+          image.point ||
+          image.skip ||
+          hasOverrides(image.overrides ?? {}) ||
+          Object.keys(image.outputs ?? {}).length > 0,
+      ),
+    );
 
-      // Written next to the file and renamed, so readers never see half of it.
-      const part = `${file}.part`;
+    await writeJson(file, state);
 
-      await mkdir(sourceDir, { recursive: true });
-      await writeFile(part, `${JSON.stringify(state, null, 2)}\n`);
-      await rename(part, file);
-
-      return state;
-    });
-
-  queues.set(file, next);
-
-  return next;
+    return state;
+  });
 }
