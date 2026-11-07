@@ -1,17 +1,58 @@
 {
   "name": "wallgrade",
+  "description": "Crop wallpapers around a focus point, recolor them with a lutgen palette and save them as AVIF",
   "type": "module",
   "private": true,
+  "license": "MIT",
+  "author": {
+    "name": "Kai Mayer (Kazuto)",
+    "email": "mail@kazuto.de"
+  },
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
-    "generate": "nuxt generate",
+    "prettier:check": "prettier --check .",
+    "prettier:fix": "prettier --write .",
+    "eslint:check": "eslint --cache --cache-strategy content",
+    "eslint:fix": "eslint --cache --cache-strategy content --fix",
+    "code:check": "npm run eslint:check && npm run prettier:check",
+    "code:fix": "npm run eslint:fix && npm run prettier:fix",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "test": "vitest run",
+    "typecheck": "nuxt typecheck",
+    "test:watch": "vitest",
+    "postinstall": "nuxt prepare",
+    "prepare": "husky"
   },
   "dependencies": {
+    "@iconify-json/lucide": "^1.2.152",
+    "@nuxt/fonts": "0.13.0",
+    "@nuxt/icon": "2.2.1",
+    "@tailwindcss/vite": "^4.3.5",
+    "@vueuse/core": "^15.0.0",
+    "fflate": "^0.8.3",
     "nuxt": "^4.6.4",
-    "vue": "^3.5.44",
-    "vue-router": "^5.4.0"
+    "sharp": "^0.35.5",
+    "tailwind-merge": "^3.7.0",
+    "tailwind-variants": "^4.0.1",
+    "tailwindcss": "^4.3.5",
+    "vue": "^3.5.45",
+    "vue-router": "^5.4.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@nuxt/eslint": "1.13.0",
+    "@nuxt/test-utils": "^4.3.4",
+    "@stylistic/eslint-plugin": "5.7.1",
+    "@types/node": "^26.6.6",
+    "@vue/test-utils": "^2.5.1",
+    "eslint": "^9.39.5",
+    "happy-dom": "^21.0.4",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.0",
+    "prettier": "^3.9.10",
+    "typescript": "^5.9.3",
+    "vitest": "^5.1.0",
+    "vue-tsc": "^3.3.14"
   }
 }
