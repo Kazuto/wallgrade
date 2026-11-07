@@ -1,0 +1,18 @@
+services:
+  wallgrade:
+    build: .
+    image: wallgrade
+    container_name: wallgrade
+    # Writes the outputs and .wallgrade.json as you rather than as root.
+    user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
+    ports:
+      # wallgrade has no sign-in, so only this machine can reach it.
+      - "127.0.0.1:${PORT:-3000}:3000"
+    volumes:
+      # Outputs are written to output/ inside it.
+      - ${WALLPAPER_DIR:?Set WALLPAPER_DIR to your wallpaper folder}:/data/source
+      - cache:/data/cache
+    restart: unless-stopped
+
+volumes:
+  cache:

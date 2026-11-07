@@ -1,0 +1,23 @@
+# Dependencies
+node_modules
+
+# Build output
+.output
+.nuxt
+
+# Local data and settings
+.data
+.env
+.env.*
+
+# Git
+.git
+
+# Development
+.husky
+.eslintcache
+*.log
+
+# Tests (not part of the image)
+test
+vitest.config.*

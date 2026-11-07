@@ -38,7 +38,39 @@ crops, scales and encodes.
 - **Presets:** save the batch settings under a name and switch between them.
 - **ZIP:** download every rendered output at once.
 
-## Requirements
+## Running wallgrade
+
+### With Docker
+
+The image brings lutgen and vips along. Tell Compose where your wallpapers are,
+in a `.env` file next to `compose.yaml`:
+
+```bash
+WALLPAPER_DIR=~/wallpapers
+```
+
+Then start it:
+
+```bash
+docker compose up -d
+```
+
+Open <http://localhost:3000>. The outputs land in `output/` inside your wallpaper
+folder, and the previews in the volume `cache`.
+
+| Variable        | Default  | Description                                        |
+| --------------- | -------- | -------------------------------------------------- |
+| `WALLPAPER_DIR` | required | Your wallpaper folder, mounted at `/data/source`   |
+| `PORT`          | `3000`   | Port on this machine                               |
+| `LOCAL_UID`     | `1000`   | User the container runs as, who owns the new files |
+| `LOCAL_GID`     | `1000`   | Group of that user                                 |
+
+wallgrade has no sign-in, so the port is only open to this machine. The image is
+for x86-64.
+
+### Without Docker
+
+You need:
 
 - [Bun](https://bun.sh/) and Node.js 24
 - `lutgen` 1.x
@@ -52,9 +84,7 @@ sudo pacman -S libvips libheif libjxl
 paru -S lutgen-bin
 ```
 
-wallgrade shows a warning when it can't find either tool.
-
-## Running wallgrade
+wallgrade shows a warning when it can't find either tool. Then:
 
 ```bash
 bun install
