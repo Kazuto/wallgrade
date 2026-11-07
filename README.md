@@ -42,8 +42,8 @@ crops, scales and encodes.
 
 ### With Docker
 
-The image brings lutgen and vips along. Tell Compose where your wallpapers are,
-in a `.env` file next to `compose.yaml`:
+The image `ghcr.io/kazuto/wallgrade` brings lutgen and vips along. Tell Compose
+where your wallpapers are, in a `.env` file next to `compose.yaml`:
 
 ```bash
 WALLPAPER_DIR=~/wallpapers
@@ -58,9 +58,14 @@ docker compose up -d
 Open <http://localhost:3000>. The outputs land in `output/` inside your wallpaper
 folder, and the previews in the volume `cache`.
 
+Compose pulls the image, or builds it from your checkout when it can't.
+`docker compose pull` gets a newer one, `docker compose up -d --build` builds your
+checkout instead.
+
 | Variable        | Default  | Description                                        |
 | --------------- | -------- | -------------------------------------------------- |
 | `WALLPAPER_DIR` | required | Your wallpaper folder, mounted at `/data/source`   |
+| `IMAGE_TAG`     | `latest` | `latest` (master), `develop` or a version          |
 | `PORT`          | `3000`   | Port on this machine                               |
 | `LOCAL_UID`     | `1000`   | User the container runs as, who owns the new files |
 | `LOCAL_GID`     | `1000`   | Group of that user                                 |
@@ -177,6 +182,15 @@ bun run code:check   # ESLint and Prettier; code:fix fixes what it can
 `test/unit` tests the shared and server code in Node. Its pipeline tests run the
 real `lutgen` and `vips` and are skipped where those aren't installed. `test/nuxt`
 mounts components in a Nuxt app.
+
+### Releases
+
+Every push to `develop` or `master` publishes an image tagged with the branch;
+`master`'s is also `latest`. Pushes to `develop` keep a release PR to `master` up
+to date. Its title is the next version, from the commit types since the last
+release: `feat` raises the minor version, a breaking change the major one,
+anything else the patch. Merging it creates the release, tags the image with the
+version and resets `develop` to `master`.
 
 ## License
 

@@ -1,7 +1,8 @@
 services:
   wallgrade:
+    # Pulls the published image, and builds it here when it can't.
+    image: ghcr.io/kazuto/wallgrade:${IMAGE_TAG:-latest}
     build: .
-    image: wallgrade
     container_name: wallgrade
     # Writes the outputs and .wallgrade.json as you rather than as root.
     user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
