@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* Surfaces from back to front. */
+  --color-canvas: #111214;
+  --color-panel: #18191c;
+  --color-raised: #202226;
+  --color-line: #2a2c31;
+  --color-line-strong: #3b3e45;
+
+  --color-fg: #e6e7e9;
+  --color-muted: #a2a5ab;
+  --color-faint: #6f727a;
+
+  --color-accent: #a8c7fa;
+  --color-accent-hover: #c1d7fb;
+  --color-on-accent: #0c1628;
+
+  --color-success: #8fd19e;
+  --color-warning: #f2c97d;
+  --color-danger: #f28b82;
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+    accent-color: var(--color-accent);
+  }
+
+  body {
+    @apply bg-canvas font-sans text-fg antialiased;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-accent;
+  }
+
+  input[type="checkbox"] {
+    @apply size-4 cursor-pointer;
+  }
+
+  input[type="range"] {
+    @apply h-1.5 w-full cursor-pointer;
+  }
+}
+
+@layer components {
+  /* Text inputs and selects. */
+  .field {
+    @apply h-10 w-full rounded-lg border border-line bg-canvas px-3 text-sm outline-none placeholder:text-faint focus:border-accent;
+  }
+
+  /* Small uppercase heading above a group, like PIPELINE. */
+  .eyebrow {
+    @apply text-xs font-semibold tracking-wider text-muted uppercase;
+  }
+}
